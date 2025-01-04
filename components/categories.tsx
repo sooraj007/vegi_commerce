@@ -1,7 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Apple, Carrot, Cookie, Beef } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export default function Categories() {
   const categories = [

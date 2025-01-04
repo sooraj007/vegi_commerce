@@ -1,5 +1,8 @@
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+"use client";
+
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -17,24 +20,24 @@ export default function Footer() {
             <h3 className="mb-4 text-lg font-semibold">Menu</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="/" className="hover:text-foreground">
+                <Link href="/" className="hover:text-foreground">
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/shop" className="hover:text-foreground">
+                <Link href="/shop" className="hover:text-foreground">
                   Shop
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/about" className="hover:text-foreground">
+                <Link href="/about" className="hover:text-foreground">
                   About
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contact" className="hover:text-foreground">
+                <Link href="/contact" className="hover:text-foreground">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -42,19 +45,19 @@ export default function Footer() {
             <h3 className="mb-4 text-lg font-semibold">Help</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="/faq" className="hover:text-foreground">
+                <Link href="/faq" className="hover:text-foreground">
                   FAQs
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/terms" className="hover:text-foreground">
+                <Link href="/terms" className="hover:text-foreground">
                   Terms & Conditions
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/privacy" className="hover:text-foreground">
+                <Link href="/privacy" className="hover:text-foreground">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -80,6 +83,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
-

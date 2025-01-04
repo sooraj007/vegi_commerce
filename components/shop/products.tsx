@@ -1,12 +1,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Star, Heart, ShoppingBasket } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/lib/cart-context";
+import { FlyToCart } from "@/components/ui/fly-to-cart";
 
 interface Product {
   id: string;
@@ -40,6 +41,11 @@ export function ShopProducts() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { addToCart } = useCart();
+  const [flyToCartConfig, setFlyToCartConfig] = useState<{
+    sourceElement: HTMLElement;
+    imageUrl: string;
+  } | null>(null);
+  const cartIconRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -72,8 +78,15 @@ export function ShopProducts() {
     };
   }, [searchParams, toast]);
 
-  const handleAddToCart = async (product: Product) => {
+  const handleAddToCart = async (
+    product: Product,
+    sourceElement: HTMLElement
+  ) => {
     try {
+      setFlyToCartConfig({
+        sourceElement,
+        imageUrl: product.images?.[0]?.image_url || "/placeholder.svg",
+      });
       await addToCart(product.id);
       toast({
         message: `${product.name} has been added to your cart.`,
@@ -83,6 +96,8 @@ export function ShopProducts() {
       toast({
         message: "Failed to add item to cart. Please try again later.",
       });
+    } finally {
+      setFlyToCartConfig(null);
     }
   };
 
@@ -155,10 +170,14 @@ export function ShopProducts() {
               <Heart className="h-4 w-4 text-white" />
             </Button>
             <Button
+              ref={cartIconRef}
               variant="secondary"
               size="icon"
               className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
-              onClick={() => handleAddToCart(product)}
+              onClick={(e) => {
+                const button = e.currentTarget;
+                handleAddToCart(product, button);
+              }}
             >
               <ShoppingBasket className="h-4 w-4 text-white" />
             </Button>
@@ -195,7 +214,10 @@ export function ShopProducts() {
             </div>
             <Button
               className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30"
-              onClick={() => handleAddToCart(product)}
+              onClick={(e) => {
+                const button = e.currentTarget;
+                handleAddToCart(product, button);
+              }}
             >
               Quick View
             </Button>
@@ -236,6 +258,13 @@ export function ShopProducts() {
           </div>
         </div>
       ))}
+      {flyToCartConfig && cartIconRef.current && (
+        <FlyToCart
+          sourceElement={flyToCartConfig.sourceElement}
+          targetElement={cartIconRef.current}
+          imageUrl={flyToCartConfig.imageUrl}
+        />
+      )}
     </div>
   );
 }

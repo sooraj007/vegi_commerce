@@ -1,3 +1,5 @@
+"use client";
+
 import { Apple, Egg, Carrot, Dumbbell } from "lucide-react";
 
 interface NutritionalValuesProps {

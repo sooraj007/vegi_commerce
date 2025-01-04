@@ -1,5 +1,11 @@
 import { getDb } from "@/lib/db";
 
+interface Category {
+  id: number;
+  name: string;
+  product_count?: number;
+}
+
 async function getCategories() {
   const db = await getDb();
   return await db.select("*").from("categories").orderBy("name", "asc");
@@ -30,7 +36,7 @@ export default async function CategoriesPage() {
             </tr>
           </thead>
           <tbody>
-            {categories.map((category: any) => (
+            {categories.map((category: Category) => (
               <tr key={category.id} className="border-b">
                 <td className="py-3 px-4">{category.name}</td>
                 <td className="py-3 px-4">{category.product_count || 0}</td>

@@ -1,6 +1,8 @@
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Play } from 'lucide-react'
+"use client";
+
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Play } from "lucide-react";
 
 export default function HowWeFarm() {
   return (
@@ -12,8 +14,8 @@ export default function HowWeFarm() {
           fill
           className="object-cover"
         />
-        <Button 
-          size="icon" 
+        <Button
+          size="icon"
           className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
         >
           <Play className="h-8 w-8 text-white" fill="white" />
@@ -22,13 +24,16 @@ export default function HowWeFarm() {
       <div className="flex flex-col justify-center space-y-4">
         <h2 className="text-2xl font-bold">How We Farm Organic Products</h2>
         <p className="text-muted-foreground">
-          Our organic farming practices prioritize sustainability and environmental stewardship. We use natural pest control methods, rotate crops to maintain soil health, and avoid synthetic fertilizers and pesticides. This ensures that our products are not only healthy for consumers but also for the planet.
+          Our organic farming practices prioritize sustainability and
+          environmental stewardship. We use natural pest control methods, rotate
+          crops to maintain soil health, and avoid synthetic fertilizers and
+          pesticides. This ensures that our products are not only healthy for
+          consumers but also for the planet.
         </p>
         <Button className="w-fit bg-[#DEB887] text-[#353535] hover:bg-[#DEB887]/90">
           Learn More
         </Button>
       </div>
     </section>
-  )
+  );
 }
-
