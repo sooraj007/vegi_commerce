@@ -4,15 +4,15 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "@/components/session-provider";
 import { CartProvider } from "@/lib/cart-context";
-import { Toaster } from "sonner";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "FreshMart - Fresh Organic Food",
-  description: "Your one-stop shop for fresh organic produce",
+  title: "Vegi Shop - Fresh Organic Products",
+  description: "Shop for fresh organic vegetables, fruits, and more.",
 };
 
 export default function RootLayout({
@@ -23,21 +23,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <SessionProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SessionProvider>
             <CartProvider>
               <Header />
               {children}
               <Footer />
               <Toaster />
             </CartProvider>
-          </ThemeProvider>
-        </SessionProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

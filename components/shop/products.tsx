@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/lib/cart-context";
 import { FlyToCart } from "@/components/ui/fly-to-cart";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Product {
   id: string;
@@ -35,6 +36,29 @@ interface ShopData {
     limit: number;
   };
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
+};
 
 export function ShopProducts() {
   const searchParams = useSearchParams();
@@ -111,173 +135,191 @@ export function ShopProducts() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            key={i}
-            className="group relative overflow-hidden rounded-2xl bg-[#1C1C1C] p-4"
-          >
-            <div className="absolute right-4 top-4 z-10 flex gap-2">
-              <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
-              <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
-            </div>
-            <div className="relative">
-              <div className="aspect-square animate-pulse rounded-xl bg-[#2C2C2C]" />
-              <div className="absolute bottom-2 left-1/2 h-9 w-28 -translate-x-1/2 animate-pulse rounded-md bg-white/10" />
-            </div>
-            <div className="mt-8 space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-4 w-4 animate-pulse rounded bg-white/10"
-                    />
-                  ))}
-                </div>
-                <div className="h-4 w-12 animate-pulse rounded bg-white/10" />
-              </div>
-              <div className="h-5 w-32 animate-pulse rounded bg-white/10" />
-              <div className="flex items-center gap-2">
-                <div className="h-6 w-16 animate-pulse rounded bg-white/10" />
-                <div className="h-4 w-12 animate-pulse rounded bg-white/10" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (!data || !data.products.length) {
-    return (
-      <div className="text-center">
-        <p className="text-muted-foreground">No products found.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {data.products.map((product) => (
-        <div
-          key={product.id}
-          className="group relative overflow-hidden rounded-2xl bg-[#1C1C1C] p-4"
+    <AnimatePresence>
+      {loading ? (
+        <motion.div
+          key="loading"
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
         >
-          <Link href={`/product/${product.id}`} className="block">
-            {product.is_new && (
-              <span className="absolute left-5 top-5 z-10 rounded-full bg-[#96C93D] px-2 py-1 text-xs font-medium text-white">
-                NEW
-              </span>
-            )}
-            <div className="absolute right-5 top-5 z-10 flex gap-2">
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
-              >
-                <Heart className="h-4 w-4 text-white" />
-              </Button>
-              <Button
-                ref={cartIconRef}
-                variant="secondary"
-                size="icon"
-                className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
-                onClick={(e) => {
-                  e.preventDefault();
-                  const button = e.currentTarget;
-                  handleAddToCart(product, button);
-                }}
-              >
-                <ShoppingBasket className="h-4 w-4 text-white" />
-              </Button>
-            </div>
-            <div className="relative">
-              <div className="aspect-square overflow-hidden rounded-xl bg-[#2C2C2C]">
-                <Image
-                  src={
-                    product.images?.[0]?.image_url &&
-                    product.images[0].image_url.startsWith("/") &&
-                    !product.images[0].image_url.includes("undefined") &&
-                    !product.images[0].image_url.includes("null") &&
-                    !product.images[0].image_url.includes("products/")
-                      ? product.images[0].image_url
-                      : "/placeholder.svg"
-                  }
-                  alt={product.name}
-                  width={400}
-                  height={400}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  placeholder="blur"
-                  blurDataURL="/placeholder.svg"
-                  priority={false}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (
-                      target &&
-                      target.src !== `${window.location.origin}/placeholder.svg`
-                    ) {
-                      target.src = "/placeholder.svg";
-                    }
-                  }}
-                />
+          {Array.from({ length: 6 }).map((_, i) => (
+            <motion.div
+              key={i}
+              variants={itemVariants}
+              className="group relative overflow-hidden rounded-2xl bg-[#1C1C1C] p-4"
+            >
+              <div className="absolute right-4 top-4 z-10 flex gap-2">
+                <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
+                <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
               </div>
-              <Button
-                className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30"
-                onClick={(e) => {
-                  const button = e.currentTarget;
-                  handleAddToCart(product, button);
-                }}
-              >
-                Quick View
-              </Button>
-            </div>
-            <div className="mt-8 space-y-2">
-              {product.rating !== undefined && (
+              <div className="relative">
+                <div className="aspect-square animate-pulse rounded-xl bg-[#2C2C2C]" />
+                <div className="absolute bottom-2 left-1/2 h-9 w-28 -translate-x-1/2 animate-pulse rounded-md bg-white/10" />
+              </div>
+              <div className="mt-8 space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="flex text-[#DEB887]">
+                  <div className="flex gap-1">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
+                      <div
                         key={i}
-                        className={`h-4 w-4 ${
-                          i < Math.floor(product.rating ?? 0)
-                            ? "fill-current"
-                            : "fill-none"
-                        }`}
+                        className="h-4 w-4 animate-pulse rounded bg-white/10"
                       />
                     ))}
                   </div>
-                  {product.reviews_count !== undefined && (
-                    <span className="text-sm text-gray-400">
-                      ({product.reviews_count})
-                    </span>
-                  )}
+                  <div className="h-4 w-12 animate-pulse rounded bg-white/10" />
                 </div>
-              )}
-              <h3 className="font-semibold text-white">{product.name}</h3>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-[#DEB887]">
-                  ${Number(product.price).toFixed(2)}
-                </span>
-                {product.old_price && (
-                  <span className="text-sm text-gray-400 line-through">
-                    ${Number(product.old_price).toFixed(2)}
+                <div className="h-5 w-32 animate-pulse rounded bg-white/10" />
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-16 animate-pulse rounded bg-white/10" />
+                  <div className="h-4 w-12 animate-pulse rounded bg-white/10" />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      ) : !data || !data.products.length ? (
+        <motion.div
+          key="no-products"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          className="text-center"
+        >
+          <p className="text-muted-foreground">No products found.</p>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="products"
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {data.products.map((product) => (
+            <motion.div
+              key={product.id}
+              variants={itemVariants}
+              className="group relative overflow-hidden rounded-2xl bg-[#1C1C1C] p-4"
+            >
+              <Link href={`/product/${product.id}`} className="block">
+                {product.is_new && (
+                  <span className="absolute left-5 top-5 z-10 rounded-full bg-[#96C93D] px-2 py-1 text-xs font-medium text-white">
+                    NEW
                   </span>
                 )}
-              </div>
-            </div>
-          </Link>
-        </div>
-      ))}
-      {flyToCartConfig && (
-        <FlyToCart
-          sourceElement={flyToCartConfig.sourceElement}
-          targetElement={flyToCartConfig.targetElement}
-          imageUrl={flyToCartConfig.imageUrl}
-        />
+                <div className="absolute right-5 top-5 z-10 flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
+                  >
+                    <Heart className="h-4 w-4 text-white" />
+                  </Button>
+                  <Button
+                    ref={cartIconRef}
+                    variant="secondary"
+                    size="icon"
+                    className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const button = e.currentTarget;
+                      handleAddToCart(product, button);
+                    }}
+                  >
+                    <ShoppingBasket className="h-4 w-4 text-white" />
+                  </Button>
+                </div>
+                <div className="relative">
+                  <div className="aspect-square overflow-hidden rounded-xl bg-[#2C2C2C]">
+                    <Image
+                      src={
+                        product.images?.[0]?.image_url &&
+                        product.images[0].image_url.startsWith("/") &&
+                        !product.images[0].image_url.includes("undefined") &&
+                        !product.images[0].image_url.includes("null") &&
+                        !product.images[0].image_url.includes("products/")
+                          ? product.images[0].image_url
+                          : "/placeholder.svg"
+                      }
+                      alt={product.name}
+                      width={400}
+                      height={400}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      placeholder="blur"
+                      blurDataURL="/placeholder.svg"
+                      priority={false}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (
+                          target &&
+                          target.src !==
+                            `${window.location.origin}/placeholder.svg`
+                        ) {
+                          target.src = "/placeholder.svg";
+                        }
+                      }}
+                    />
+                  </div>
+                  <Button
+                    className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30"
+                    onClick={(e) => {
+                      const button = e.currentTarget;
+                      handleAddToCart(product, button);
+                    }}
+                  >
+                    Quick View
+                  </Button>
+                </div>
+                <div className="mt-8 space-y-2">
+                  {product.rating !== undefined && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex text-[#DEB887]">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < Math.floor(product.rating ?? 0)
+                                ? "fill-current"
+                                : "fill-none"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      {product.reviews_count !== undefined && (
+                        <span className="text-sm text-gray-400">
+                          ({product.reviews_count})
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <h3 className="font-semibold text-white">{product.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-[#DEB887]">
+                      ${Number(product.price).toFixed(2)}
+                    </span>
+                    {product.old_price && (
+                      <span className="text-sm text-gray-400 line-through">
+                        ${Number(product.old_price).toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+          {flyToCartConfig && (
+            <FlyToCart
+              sourceElement={flyToCartConfig.sourceElement}
+              targetElement={flyToCartConfig.targetElement}
+              imageUrl={flyToCartConfig.imageUrl}
+            />
+          )}
+        </motion.div>
       )}
-    </div>
+    </AnimatePresence>
   );
 }
