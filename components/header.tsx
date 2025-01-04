@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Search, Menu, MapPin, ShoppingCart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import CartSidebar from "@/components/cart-sidebar";
 import { useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +22,19 @@ import {
 export default function Header() {
   const [cartOpen, setCartOpen] = useState(false);
   const { data: session } = useSession();
+  const pathname = usePathname();
+
+  const isActive = (path: string) => {
+    if (path === "/") return pathname === path;
+    return pathname.startsWith(path);
+  };
+
+  const menuItems = [
+    { path: "/", label: "Home" },
+    { path: "/shop", label: "Shop" },
+    { path: "/about", label: "About" },
+    { path: "/contact", label: "Contact" },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -34,19 +49,20 @@ export default function Header() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[300px] sm:w-[400px]">
               <nav className="flex flex-col gap-4">
-                <Link href="/" className="text-lg font-semibold">
-                  Home
-                </Link>
-                <Link href="/shop" className="text-lg font-semibold">
-                  Shop
-                </Link>
-                <Link href="/about" className="text-lg font-semibold">
-                  About
-                </Link>
-
-                <Link href="/contact" className="text-lg font-semibold">
-                  Contact
-                </Link>
+                {menuItems.map(({ path, label }) => (
+                  <Link
+                    key={path}
+                    href={path}
+                    className={cn(
+                      "text-lg font-semibold",
+                      isActive(path)
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {label}
+                  </Link>
+                ))}
               </nav>
             </SheetContent>
           </Sheet>
@@ -55,28 +71,20 @@ export default function Header() {
           </Link>
         </div>
         <nav className="hidden gap-6 lg:flex">
-          <Link href="/" className="text-sm font-medium text-foreground">
-            Home
-          </Link>
-          <Link
-            href="/shop"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Shop
-          </Link>
-          <Link
-            href="/about"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            About
-          </Link>
-
-          <Link
-            href="/contact"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Contact
-          </Link>
+          {menuItems.map(({ path, label }) => (
+            <Link
+              key={path}
+              href={path}
+              className={cn(
+                "text-sm font-medium transition-colors",
+                isActive(path)
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-4 lg:flex">

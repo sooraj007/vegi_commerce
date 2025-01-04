@@ -40,14 +40,19 @@ export function ShopProducts() {
   const { toast } = useToast();
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     async function fetchProducts() {
       try {
         setLoading(true);
-        const response = await fetch(`/api/shop?${searchParams.toString()}`);
+        const response = await fetch(`/api/shop?${searchParams.toString()}`, {
+          signal: abortController.signal,
+        });
         if (!response.ok) throw new Error("Failed to fetch products");
         const data = await response.json();
         setData(data);
-      } catch (error) {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") return;
         console.error("Error fetching products:", error);
         toast({
           message: "Failed to load products. Please try again later.",
@@ -59,6 +64,10 @@ export function ShopProducts() {
     }
 
     fetchProducts();
+
+    return () => {
+      abortController.abort();
+    };
   }, [searchParams, toast]);
 
   const addToCart = (product: Product) => {
