@@ -75,6 +75,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = async (itemId: string, quantity: number) => {
+    // Optimistically update the UI
+    const oldItems = [...items];
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === itemId ? { ...item, quantity } : item
+      )
+    );
+
     try {
       const response = await fetch(`/api/cart/${itemId}`, {
         method: "PATCH",
@@ -86,29 +94,41 @@ export function CartProvider({ children }: { children: ReactNode }) {
       await refreshCart();
     } catch (error) {
       console.error("Error updating cart item:", error);
+      // Revert to old state if there's an error
+      setItems(oldItems);
       throw error;
     }
   };
 
   const removeItem = async (itemId: string) => {
+    // Optimistically update the UI
+    const oldItems = [...items];
+    setItems((currentItems) =>
+      currentItems.filter((item) => item.id !== itemId)
+    );
+
     try {
       const response = await fetch(`/api/cart/${itemId}`, {
         method: "DELETE",
       });
 
       if (!response.ok) throw new Error("Failed to remove cart item");
-      await refreshCart();
+      // No need to refresh cart here since we've already removed the item
     } catch (error) {
       console.error("Error removing cart item:", error);
+      // Revert to old state if there's an error
+      setItems(oldItems);
       throw error;
     }
   };
+
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
       value={{
         items,
-        itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+        itemCount,
         addToCart,
         updateQuantity,
         removeItem,

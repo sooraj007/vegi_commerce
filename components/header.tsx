@@ -228,12 +228,25 @@ export default function Header() {
               >
                 <ShoppingCart className="cart-icon h-5 w-5" />
                 <span className="sr-only">Open cart</span>
-                <AnimatePresence>
+                <AnimatePresence mode="wait">
                   {itemCount > 0 && (
                     <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
+                      key={itemCount}
+                      initial={{ scale: 0.6, opacity: 0 }}
+                      animate={{
+                        scale: 1,
+                        opacity: 1,
+                      }}
+                      exit={{
+                        scale: 0.6,
+                        opacity: 0,
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 25,
+                        mass: 0.5,
+                      }}
                       className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#96C93D] text-xs font-medium text-white"
                     >
                       {itemCount}

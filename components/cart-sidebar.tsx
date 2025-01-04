@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -12,86 +11,71 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface CartItem {
-  id: string;
-  product_id: string;
-  name: string;
-  price: number;
-  old_price: number | null;
-  quantity: number;
-  category_name: string;
-  images: Array<{
-    id: number;
-    image_url: string;
-    is_primary: boolean;
-  }>;
-}
+import { useCart } from "@/lib/cart-context";
+import { useState } from "react";
 
 interface CartSidebarProps {
   open: boolean;
   onClose: () => void;
 }
 
+function AnimatedCounter({ value }: { value: number }) {
+  return (
+    <div className="relative w-8 h-8 flex items-center justify-center">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={value}
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -10, opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="absolute"
+        >
+          {value}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function CartSidebar({ open, onClose }: CartSidebarProps) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
-  const { toast } = useToast();
+  const { items: cartItems, updateQuantity, removeItem } = useCart();
+  const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
+  const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
 
-  const fetchCartItems = useCallback(async () => {
+  const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+    if (updatingItems.has(itemId)) return;
+
     try {
-      setLoading(true);
-      const response = await fetch("/api/cart");
-      if (!response.ok) throw new Error("Failed to fetch cart items");
-      const data = await response.json();
-      setCartItems(data);
-    } catch (error) {
-      console.error("Error fetching cart items:", error);
-      toast({
-        message: "Failed to load cart items. Please try again later.",
-      });
+      setUpdatingItems((prev) => new Set(prev).add(itemId));
+      if (newQuantity <= 0) {
+        await handleRemoveItem(itemId);
+      } else {
+        await updateQuantity(itemId, newQuantity);
+      }
     } finally {
-      setLoading(false);
+      setUpdatingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
     }
-  }, [toast]);
+  };
 
-  useEffect(() => {
-    if (session?.user && open) {
-      fetchCartItems();
-    }
-  }, [session?.user, open, fetchCartItems]);
+  const handleRemoveItem = async (itemId: string) => {
+    if (removingItems.has(itemId)) return;
 
-  const updateQuantity = async (id: string, newQuantity: number) => {
     try {
-      const response = await fetch(`/api/cart/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: newQuantity }),
+      setRemovingItems((prev) => new Set(prev).add(itemId));
+      await removeItem(itemId);
+    } finally {
+      setRemovingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
       });
-
-      if (!response.ok) throw new Error("Failed to update cart item");
-
-      // Optimistically update the UI
-      setCartItems((items) =>
-        items
-          .map((item) =>
-            item.id === id ? { ...item, quantity: newQuantity } : item
-          )
-          .filter((item) => item.quantity > 0)
-      );
-
-      // Refetch to ensure data consistency
-      fetchCartItems();
-    } catch (error) {
-      console.error("Error updating cart item:", error);
-      toast({
-        message: "Failed to update cart item. Please try again later.",
-      });
-      // Revert optimistic update by refetching
-      fetchCartItems();
     }
   };
 
@@ -131,27 +115,31 @@ export default function CartSidebar({ open, onClose }: CartSidebarProps) {
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-lg">
+      <SheetContent className="flex w-full flex-col sm:max-w-lg">
         <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
+          className="flex h-full flex-col"
         >
           <SheetHeader>
             <SheetTitle className="text-2xl">Your Cart</SheetTitle>
           </SheetHeader>
-          <div className="mt-8 flex h-full flex-col">
-            <div className="flex-1 overflow-y-auto">
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                </div>
-              ) : cartItems.length === 0 ? (
+          <div className="mt-8 flex flex-1 flex-col">
+            <div
+              className="flex-1 overflow-y-auto px-6"
+              style={{
+                height: "calc(100vh - 250px)",
+                overflowY: "auto",
+                scrollbarGutter: "stable",
+              }}
+            >
+              {cartItems.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="flex flex-col items-center justify-center py-8"
+                  className="flex h-full flex-col items-center justify-center"
                 >
                   <p className="text-muted-foreground">Your cart is empty</p>
                   <Button className="mt-4" onClick={onClose} asChild>
@@ -159,15 +147,34 @@ export default function CartSidebar({ open, onClose }: CartSidebarProps) {
                   </Button>
                 </motion.div>
               ) : (
-                <AnimatePresence>
-                  {cartItems.map((item, index) => (
+                <AnimatePresence initial={false}>
+                  {cartItems.map((item) => (
                     <motion.div
                       key={item.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      transition={{ duration: 0.2, delay: index * 0.1 }}
-                      className="flex items-center gap-4 py-4"
+                      initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                      animate={{
+                        opacity: 1,
+                        height: "auto",
+                        marginBottom: "1rem",
+                      }}
+                      exit={{
+                        opacity: 0,
+                        height: 0,
+                        marginBottom: 0,
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 30,
+                        opacity: { duration: 0.2 },
+                      }}
+                      className="flex items-center gap-4 border-b border-gray-800 pb-4"
+                      style={{
+                        opacity: removingItems.has(item.id) ? 0.5 : 1,
+                        pointerEvents: removingItems.has(item.id)
+                          ? "none"
+                          : "auto",
+                      }}
                     >
                       <div className="h-20 w-20 overflow-hidden rounded-lg bg-muted">
                         <Image
@@ -198,17 +205,30 @@ export default function CartSidebar({ open, onClose }: CartSidebarProps) {
                           }}
                         />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{item.name}</h3>
-                        <div className="mt-0.5 space-x-2">
-                          <span className="text-sm font-medium text-[#96C93D]">
-                            ${item.price.toFixed(2)}
-                          </span>
-                          {item.old_price && (
-                            <span className="text-sm text-muted-foreground line-through">
-                              ${item.old_price.toFixed(2)}
-                            </span>
-                          )}
+                      <div className="flex flex-1 flex-col">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-semibold">{item.name}</h3>
+                            <div className="mt-0.5 space-x-2">
+                              <span className="text-sm font-medium text-[#96C93D]">
+                                ${item.price.toFixed(2)}
+                              </span>
+                              {item.old_price && (
+                                <span className="text-sm text-muted-foreground line-through">
+                                  ${item.old_price.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-red-500/10 hover:text-red-500"
+                            onClick={() => handleRemoveItem(item.id)}
+                            disabled={removingItems.has(item.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                         <div className="mt-2 flex items-center gap-2">
                           <Button
@@ -216,22 +236,22 @@ export default function CartSidebar({ open, onClose }: CartSidebarProps) {
                             size="icon"
                             className="h-8 w-8 rounded-full"
                             onClick={() =>
-                              updateQuantity(item.id, item.quantity - 1)
+                              handleUpdateQuantity(item.id, item.quantity - 1)
                             }
+                            disabled={updatingItems.has(item.id)}
                           >
                             <Minus className="h-3 w-3" />
                             <span className="sr-only">Decrease quantity</span>
                           </Button>
-                          <span className="w-8 text-center">
-                            {item.quantity}
-                          </span>
+                          <AnimatedCounter value={item.quantity} />
                           <Button
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 rounded-full"
                             onClick={() =>
-                              updateQuantity(item.id, item.quantity + 1)
+                              handleUpdateQuantity(item.id, item.quantity + 1)
                             }
+                            disabled={updatingItems.has(item.id)}
                           >
                             <Plus className="h-3 w-3" />
                             <span className="sr-only">Increase quantity</span>
@@ -248,7 +268,7 @@ export default function CartSidebar({ open, onClose }: CartSidebarProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
-                className="space-y-4 border-t pt-6"
+                className="space-y-4 border-t px-6 py-4"
               >
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -263,26 +283,19 @@ export default function CartSidebar({ open, onClose }: CartSidebarProps) {
                     <span>Discount (15%)</span>
                     <span>-${discount.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-base font-semibold">
+                  <div className="flex justify-between border-t pt-2 text-base font-semibold">
                     <span>Total</span>
                     <span>${total.toFixed(2)}</span>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link href="/cart" onClick={onClose}>
-                      View Cart
-                    </Link>
-                  </Button>
-                  <Button
-                    className="w-full bg-[#DEB887] text-[#353535] hover:bg-[#DEB887]/90"
-                    asChild
-                  >
-                    <Link href="/checkout" onClick={onClose}>
-                      Checkout
-                    </Link>
-                  </Button>
-                </div>
+                <Button
+                  className="w-full bg-[#DEB887] text-[#353535] hover:bg-[#DEB887]/90"
+                  asChild
+                >
+                  <Link href="/checkout" onClick={onClose}>
+                    Proceed to Checkout
+                  </Link>
+                </Button>
               </motion.div>
             )}
           </div>
