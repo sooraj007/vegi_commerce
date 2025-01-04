@@ -4,62 +4,87 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Star, ShoppingCart, Heart } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
-export default function FeaturedProducts() {
-  const { toast, ToastComponent } = useToast();
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Fresh Apples",
-      price: 4.99,
-      oldPrice: 6.99,
-      image: "/placeholder.svg?height=200&width=200",
-      category: "Fruits",
-      rating: 4.5,
-      color: "bg-[#96C93D]",
-    },
-    {
-      id: 2,
-      name: "Organic Tomatoes",
-      price: 3.99,
-      oldPrice: 5.99,
-      image: "/placeholder.svg?height=200&width=200",
-      category: "Vegetables",
-      rating: 4.8,
-      color: "bg-[#4B6F44]",
-    },
-    {
-      id: 3,
-      name: "Fresh Oranges",
-      price: 2.99,
-      oldPrice: 4.99,
-      image: "/placeholder.svg?height=200&width=200",
-      category: "Fruits",
-      rating: 4.3,
-      color: "bg-[#DEB887]",
-    },
-    {
-      id: 4,
-      name: "Green Lettuce",
-      price: 3.49,
-      oldPrice: 4.99,
-      image: "/placeholder.svg?height=200&width=200",
-      category: "Vegetables",
-      rating: 4.6,
-      color: "bg-[#4B6F44]",
-    },
-  ]);
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  old_price: number;
+  category_name: string;
+  images: Array<{
+    id: number;
+    image_url: string;
+    is_primary: boolean;
+  }>;
+}
 
-  const addToCart = (product) => {
-    // In a real application, you would update the cart state here
-    // For now, we'll just show a toast notification
+export default function FeaturedProducts() {
+  const { toast } = useToast();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch("/api/products");
+        if (!response.ok) throw new Error("Failed to fetch products");
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        toast({
+          message: "Failed to load products. Please try again later.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, [toast]);
+
+  const addToCart = (product: Product) => {
     toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
+      message: `${product.name} has been added to your cart.`,
     });
   };
+
+  if (loading) {
+    return (
+      <section className="container py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="group relative overflow-hidden rounded-2xl bg-card p-4"
+            >
+              <div className="absolute right-3 top-3 z-10 flex gap-2">
+                <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
+                <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
+              </div>
+              <div className="aspect-square animate-pulse rounded-xl bg-muted" />
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 animate-pulse rounded-full bg-muted" />
+                </div>
+                <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+                <div className="h-5 w-32 animate-pulse rounded bg-muted" />
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-16 animate-pulse rounded bg-muted" />
+                  <div className="h-4 w-12 animate-pulse rounded bg-muted" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="container py-8">
@@ -98,40 +123,58 @@ export default function FeaturedProducts() {
             <Link href={`/product/${product.id}`}>
               <div className="aspect-square overflow-hidden rounded-xl bg-white dark:bg-[#454545]">
                 <Image
-                  src={product.image}
+                  src={
+                    product.images?.[0]?.image_url &&
+                    product.images[0].image_url.startsWith("/") &&
+                    !product.images[0].image_url.includes("undefined") &&
+                    !product.images[0].image_url.includes("null") &&
+                    !product.images[0].image_url.includes("products/")
+                      ? product.images[0].image_url
+                      : "/placeholder.svg"
+                  }
                   alt={product.name}
                   width={200}
                   height={200}
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  placeholder="blur"
+                  blurDataURL="/placeholder.svg"
+                  priority={false}
+                  onError={() => {
+                    const target = event?.target as HTMLImageElement;
+                    if (
+                      target &&
+                      target.src !== `${window.location.origin}/placeholder.svg`
+                    ) {
+                      target.src = "/placeholder.svg";
+                    }
+                  }}
                 />
               </div>
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className={`rounded-full ${product.color} p-1.5`}>
+                  <div className="rounded-full bg-[#96C93D] p-1.5">
                     <Star className="h-3 w-3 fill-white text-white" />
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {product.rating}
-                  </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {product.category}
+                  {product.category_name}
                 </p>
                 <h3 className="font-semibold">{product.name}</h3>
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-bold text-[#DEB887]">
                     ${product.price}
                   </span>
-                  <span className="text-sm text-muted-foreground line-through">
-                    ${product.oldPrice}
-                  </span>
+                  {product.old_price && (
+                    <span className="text-sm text-muted-foreground line-through">
+                      ${product.old_price}
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>
           </div>
         ))}
       </div>
-      {ToastComponent}
     </section>
   );
 }

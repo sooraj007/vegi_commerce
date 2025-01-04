@@ -95,3 +95,44 @@ export async function PATCH(
     return new NextResponse("Internal error", { status: 500 });
   }
 }
+
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const db = await getDb();
+    const product = await db
+      .select(
+        "p.*",
+        "c.name as category_name",
+        db.raw(`
+          (
+            SELECT json_agg(json_build_object(
+              'id', pi.id,
+              'image_url', pi.image_url,
+              'is_primary', pi.is_primary
+            ))
+            FROM product_images pi
+            WHERE pi.product_id = p.id
+          ) as images
+        `)
+      )
+      .from("products as p")
+      .leftJoin("categories as c", "p.category_id", "c.id")
+      .where("p.id", params.id)
+      .first();
+
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(product);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch product" },
+      { status: 500 }
+    );
+  }
+}

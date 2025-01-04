@@ -33,10 +33,12 @@ interface Product {
 
 interface ProductsTableProps {
   products: Product[];
+  loading?: boolean;
 }
 
 export default function ProductsTable({
   products: initialProducts,
+  loading = false,
 }: ProductsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState(initialProducts);
@@ -89,71 +91,131 @@ export default function ProductsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>
-                  <div className="h-12 w-12 overflow-hidden rounded-lg bg-muted">
-                    <Image
-                      src={product.images?.[0]?.image_url || "/placeholder.svg"}
-                      alt={product.name}
-                      width={48}
-                      height={48}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                </TableCell>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell>{product.category_name}</TableCell>
-                <TableCell>
-                  <div className="space-x-2">
-                    <span className="font-medium text-[#DEB887]">
-                      {formatPrice(product.price)}
-                    </span>
-                    {product.old_price && (
-                      <span className="text-sm text-muted-foreground line-through">
-                        {formatPrice(product.old_price)}
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{product.stock_quantity}</TableCell>
-                <TableCell>
-                  <div className="space-x-2">
-                    {product.is_new && (
-                      <span className="inline-block rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
-                        New
-                      </span>
-                    )}
-                    {product.is_sale && (
-                      <span className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-800">
-                        Sale
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        (window.location.href = `/admin/products/${product.id}/edit`)
-                      }
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="text-red-500 hover:text-red-600"
-                      onClick={() => handleDelete(product.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {loading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <div className="h-12 w-12 animate-pulse rounded-lg bg-muted" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-16 animate-pulse rounded bg-muted" />
+                        <div className="h-4 w-12 animate-pulse rounded bg-muted" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-12 animate-pulse rounded bg-muted" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <div className="h-6 w-12 animate-pulse rounded-full bg-muted" />
+                        <div className="h-6 w-12 animate-pulse rounded-full bg-muted" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <div className="h-8 w-8 animate-pulse rounded bg-muted" />
+                        <div className="h-8 w-8 animate-pulse rounded bg-muted" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              : filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <div className="h-12 w-12 overflow-hidden rounded-lg bg-muted">
+                        <Image
+                          src={
+                            product.images?.[0]?.image_url &&
+                            product.images[0].image_url.startsWith("/") &&
+                            !product.images[0].image_url.includes(
+                              "undefined"
+                            ) &&
+                            !product.images[0].image_url.includes("null") &&
+                            !product.images[0].image_url.includes("products/")
+                              ? product.images[0].image_url
+                              : "/placeholder.svg"
+                          }
+                          alt={product.name}
+                          width={80}
+                          height={80}
+                          className="h-20 w-20 rounded-lg object-cover"
+                          placeholder="blur"
+                          blurDataURL="/placeholder.svg"
+                          priority={false}
+                          onError={() => {
+                            const target = event?.target as HTMLImageElement;
+                            if (
+                              target &&
+                              target.src !==
+                                `${window.location.origin}/placeholder.svg`
+                            ) {
+                              target.src = "/placeholder.svg";
+                            }
+                          }}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {product.name}
+                    </TableCell>
+                    <TableCell>{product.category_name}</TableCell>
+                    <TableCell>
+                      <div className="space-x-2">
+                        <span className="font-medium text-[#DEB887]">
+                          {formatPrice(product.price)}
+                        </span>
+                        {product.old_price && (
+                          <span className="text-sm text-muted-foreground line-through">
+                            {formatPrice(product.old_price)}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{product.stock_quantity}</TableCell>
+                    <TableCell>
+                      <div className="space-x-2">
+                        {product.is_new && (
+                          <span className="inline-block rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
+                            New
+                          </span>
+                        )}
+                        {product.is_sale && (
+                          <span className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-800">
+                            Sale
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() =>
+                            (window.location.href = `/admin/products/${product.id}/edit`)
+                          }
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="text-red-500 hover:text-red-600"
+                          onClick={() => handleDelete(product.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       </div>
