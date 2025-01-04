@@ -8,6 +8,7 @@ import { Star, Heart, ShoppingBasket } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/lib/cart-context";
 import { FlyToCart } from "@/components/ui/fly-to-cart";
+import Link from "next/link";
 
 interface Product {
   id: string;
@@ -165,106 +166,109 @@ export function ShopProducts() {
           key={product.id}
           className="group relative overflow-hidden rounded-2xl bg-[#1C1C1C] p-4"
         >
-          {product.is_new && (
-            <span className="absolute left-5 top-5 z-10 rounded-full bg-[#96C93D] px-2 py-1 text-xs font-medium text-white">
-              NEW
-            </span>
-          )}
-          <div className="absolute right-5 top-5 z-10 flex gap-2">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
-            >
-              <Heart className="h-4 w-4 text-white" />
-            </Button>
-            <Button
-              ref={cartIconRef}
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
-              onClick={(e) => {
-                const button = e.currentTarget;
-                handleAddToCart(product, button);
-              }}
-            >
-              <ShoppingBasket className="h-4 w-4 text-white" />
-            </Button>
-          </div>
-          <div className="relative">
-            <div className="aspect-square overflow-hidden rounded-xl bg-[#2C2C2C]">
-              <Image
-                src={
-                  product.images?.[0]?.image_url &&
-                  product.images[0].image_url.startsWith("/") &&
-                  !product.images[0].image_url.includes("undefined") &&
-                  !product.images[0].image_url.includes("null") &&
-                  !product.images[0].image_url.includes("products/")
-                    ? product.images[0].image_url
-                    : "/placeholder.svg"
-                }
-                alt={product.name}
-                width={400}
-                height={400}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                placeholder="blur"
-                blurDataURL="/placeholder.svg"
-                priority={false}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (
-                    target &&
-                    target.src !== `${window.location.origin}/placeholder.svg`
-                  ) {
-                    target.src = "/placeholder.svg";
-                  }
+          <Link href={`/product/${product.id}`} className="block">
+            {product.is_new && (
+              <span className="absolute left-5 top-5 z-10 rounded-full bg-[#96C93D] px-2 py-1 text-xs font-medium text-white">
+                NEW
+              </span>
+            )}
+            <div className="absolute right-5 top-5 z-10 flex gap-2">
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
+              >
+                <Heart className="h-4 w-4 text-white" />
+              </Button>
+              <Button
+                ref={cartIconRef}
+                variant="secondary"
+                size="icon"
+                className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const button = e.currentTarget;
+                  handleAddToCart(product, button);
                 }}
-              />
+              >
+                <ShoppingBasket className="h-4 w-4 text-white" />
+              </Button>
             </div>
-            <Button
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30"
-              onClick={(e) => {
-                const button = e.currentTarget;
-                handleAddToCart(product, button);
-              }}
-            >
-              Quick View
-            </Button>
-          </div>
-          <div className="mt-8 space-y-2">
-            {product.rating !== undefined && (
-              <div className="flex items-center gap-2">
-                <div className="flex text-[#DEB887]">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.floor(product.rating ?? 0)
-                          ? "fill-current"
-                          : "fill-none"
-                      }`}
-                    />
-                  ))}
+            <div className="relative">
+              <div className="aspect-square overflow-hidden rounded-xl bg-[#2C2C2C]">
+                <Image
+                  src={
+                    product.images?.[0]?.image_url &&
+                    product.images[0].image_url.startsWith("/") &&
+                    !product.images[0].image_url.includes("undefined") &&
+                    !product.images[0].image_url.includes("null") &&
+                    !product.images[0].image_url.includes("products/")
+                      ? product.images[0].image_url
+                      : "/placeholder.svg"
+                  }
+                  alt={product.name}
+                  width={400}
+                  height={400}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  placeholder="blur"
+                  blurDataURL="/placeholder.svg"
+                  priority={false}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (
+                      target &&
+                      target.src !== `${window.location.origin}/placeholder.svg`
+                    ) {
+                      target.src = "/placeholder.svg";
+                    }
+                  }}
+                />
+              </div>
+              <Button
+                className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30"
+                onClick={(e) => {
+                  const button = e.currentTarget;
+                  handleAddToCart(product, button);
+                }}
+              >
+                Quick View
+              </Button>
+            </div>
+            <div className="mt-8 space-y-2">
+              {product.rating !== undefined && (
+                <div className="flex items-center gap-2">
+                  <div className="flex text-[#DEB887]">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i < Math.floor(product.rating ?? 0)
+                            ? "fill-current"
+                            : "fill-none"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  {product.reviews_count !== undefined && (
+                    <span className="text-sm text-gray-400">
+                      ({product.reviews_count})
+                    </span>
+                  )}
                 </div>
-                {product.reviews_count !== undefined && (
-                  <span className="text-sm text-gray-400">
-                    ({product.reviews_count})
+              )}
+              <h3 className="font-semibold text-white">{product.name}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-[#DEB887]">
+                  ${Number(product.price).toFixed(2)}
+                </span>
+                {product.old_price && (
+                  <span className="text-sm text-gray-400 line-through">
+                    ${Number(product.old_price).toFixed(2)}
                   </span>
                 )}
               </div>
-            )}
-            <h3 className="font-semibold text-white">{product.name}</h3>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-[#DEB887]">
-                ${Number(product.price).toFixed(2)}
-              </span>
-              {product.old_price && (
-                <span className="text-sm text-gray-400 line-through">
-                  ${Number(product.old_price).toFixed(2)}
-                </span>
-              )}
             </div>
-          </div>
+          </Link>
         </div>
       ))}
       {flyToCartConfig && (
