@@ -10,7 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Star, Leaf, Facebook, Twitter, Instagram } from "lucide-react";
+import {
+  Star,
+  Leaf,
+  Facebook,
+  Twitter,
+  Instagram,
+  ShoppingCart,
+} from "lucide-react";
 import NutritionalValues from "@/components/nutritional-values";
 import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,21 +25,29 @@ import { motion, AnimatePresence } from "framer-motion";
 interface Product {
   id: string;
   name: string;
-  price: number;
-  old_price: number | null;
+  price: string;
+  old_price: string | null;
   description: string;
   category_name: string;
+  slug: string;
+  stock_quantity: number;
+  is_new: boolean;
+  is_sale: boolean;
+  rating: string;
+  review_count: number;
   images: Array<{
-    id: number;
+    id: string;
     image_url: string;
     is_primary: boolean;
   }>;
-  nutritional_info?: {
-    carbohydrates?: string;
-    proteins?: string;
-    vitamins?: string;
-    minerals?: string;
+  nutritional_info: {
+    fat: string;
+    carbs: string;
+    protein: string;
+    calories: string;
   };
+  created_at: string;
+  updated_at: string;
 }
 
 const fadeVariants = {
@@ -197,12 +212,12 @@ export default function ProductDetails({ productId }: { productId: string }) {
             alt={product.name}
             width={400}
             height={400}
-            className="h-full w-full object-cover"
+            className="h-full w-full rounded-2xl object-cover bg-muted"
             placeholder="blur"
             blurDataURL="/placeholder.svg"
             priority={false}
-            onError={() => {
-              const target = event?.target as HTMLImageElement;
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
               if (
                 target &&
                 target.src !== `${window.location.origin}/placeholder.svg`
@@ -255,17 +270,22 @@ export default function ProductDetails({ productId }: { productId: string }) {
             className="flex items-center gap-4"
           >
             <div className="flex text-[#DEB887]">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2, delay: 0.5 + i * 0.1 }}
-                >
-                  <Star className="h-5 w-5 fill-current" />
-                </motion.div>
-              ))}
+              {Array.from({ length: Math.floor(Number(product.rating)) }).map(
+                (_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2, delay: 0.5 + i * 0.1 }}
+                  >
+                    <Star className="h-5 w-5 fill-current" />
+                  </motion.div>
+                )
+              )}
             </div>
+            <span className="text-sm text-muted-foreground">
+              ({product.review_count} reviews)
+            </span>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -299,7 +319,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             className="flex items-center gap-4"
           >
             <Select value={quantity} onValueChange={setQuantity}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="Select quantity" />
               </SelectTrigger>
               <SelectContent>
@@ -311,12 +331,33 @@ export default function ProductDetails({ productId }: { productId: string }) {
             <Button
               ref={buttonRef}
               size="lg"
-              className="bg-[#DEB887] text-[#353535] hover:bg-[#DEB887]/90"
+              className="bg-white hover:bg-gray-50 text-black transition-all duration-300 rounded-[1rem] h-14 shadow-sm border border-gray-100 w-[280px]"
               onClick={addToCart}
             >
-              Add to Cart - ${product.price}
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="text-base font-medium">Add to cart</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-bold text-[#96C93D] px-2">
+                    ${product.price}
+                  </span>
+                  {product.old_price && (
+                    <span className="text-sm text-gray-400 line-through">
+                      ${product.old_price}
+                    </span>
+                  )}
+                </div>
+              </div>
             </Button>
           </motion.div>
+          {product.stock_quantity < 10 && (
+            <p className="text-sm text-red-500 font-medium flex items-center gap-2">
+              <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              Only {product.stock_quantity} left in stock!
+            </p>
+          )}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -325,7 +366,11 @@ export default function ProductDetails({ productId }: { productId: string }) {
           >
             <p className="text-sm text-muted-foreground">
               Tags:{" "}
-              <span className="text-foreground">Organic, Healthy, Natural</span>
+              <span className="text-foreground">
+                {product.is_new ? "New, " : ""}
+                {product.is_sale ? "Sale, " : ""}
+                Organic, Natural
+              </span>
             </p>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Share:</span>
