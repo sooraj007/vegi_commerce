@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Star, Heart, ShoppingBasket } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useCart } from "@/lib/cart-context";
 
 interface Product {
   id: string;
@@ -38,6 +39,7 @@ export function ShopProducts() {
   const [data, setData] = useState<ShopData | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -70,10 +72,18 @@ export function ShopProducts() {
     };
   }, [searchParams, toast]);
 
-  const addToCart = (product: Product) => {
-    toast({
-      message: `${product.name} has been added to your cart.`,
-    });
+  const handleAddToCart = async (product: Product) => {
+    try {
+      await addToCart(product.id);
+      toast({
+        message: `${product.name} has been added to your cart.`,
+      });
+    } catch (error) {
+      console.error("Error adding item to cart:", error);
+      toast({
+        message: "Failed to add item to cart. Please try again later.",
+      });
+    }
   };
 
   if (loading) {
@@ -148,6 +158,7 @@ export function ShopProducts() {
               variant="secondary"
               size="icon"
               className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/30"
+              onClick={() => handleAddToCart(product)}
             >
               <ShoppingBasket className="h-4 w-4 text-white" />
             </Button>
@@ -171,8 +182,8 @@ export function ShopProducts() {
                 placeholder="blur"
                 blurDataURL="/placeholder.svg"
                 priority={false}
-                onError={() => {
-                  const target = event?.target as HTMLImageElement;
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
                   if (
                     target &&
                     target.src !== `${window.location.origin}/placeholder.svg`
@@ -184,7 +195,7 @@ export function ShopProducts() {
             </div>
             <Button
               className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30"
-              onClick={() => addToCart(product)}
+              onClick={() => handleAddToCart(product)}
             >
               Quick View
             </Button>

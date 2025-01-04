@@ -26,7 +26,12 @@ interface Product {
     image_url: string;
     is_primary: boolean;
   }>;
-  nutritional_info?: any;
+  nutritional_info?: {
+    carbohydrates?: string;
+    proteins?: string;
+    vitamins?: string;
+    minerals?: string;
+  };
 }
 
 export default function ProductDetails({ productId }: { productId: string }) {
@@ -45,10 +50,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
       } catch (error) {
         console.error("Error fetching product:", error);
         toast({
-          title: "Error",
-          description:
-            "Failed to load product details. Please try again later.",
-          variant: "destructive",
+          message: "Failed to load product details. Please try again later.",
         });
       } finally {
         setLoading(false);
@@ -60,8 +62,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
   const addToCart = () => {
     toast({
-      title: "Added to cart",
-      description: `${product?.name} (${quantity}) has been added to your cart.`,
+      message: `${product?.name} (${quantity}) has been added to your cart.`,
     });
   };
 

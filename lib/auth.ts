@@ -51,6 +51,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         return {
           ...token,
+          id: user.id,
           role: user.role,
         };
       }
@@ -61,7 +62,8 @@ export const authOptions: NextAuthOptions = {
         ...session,
         user: {
           ...session.user,
-          role: token.role,
+          id: token.id as string,
+          role: token.role as string,
         },
       };
     },

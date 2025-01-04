@@ -11,6 +11,7 @@ import CartSidebar from "@/components/cart-sidebar";
 import { useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { useCart } from "@/lib/cart-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,7 @@ export default function Header() {
   const [cartOpen, setCartOpen] = useState(false);
   const { data: session } = useSession();
   const pathname = usePathname();
+  const { itemCount } = useCart();
 
   const isActive = (path: string) => {
     if (path === "/") return pathname === path;
@@ -70,13 +72,13 @@ export default function Header() {
             <span className="text-xl font-bold lg:text-2xl">FreshMart</span>
           </Link>
         </div>
-        <nav className="hidden gap-6 lg:flex">
+        <nav className="hidden lg:flex lg:gap-6">
           {menuItems.map(({ path, label }) => (
             <Link
               key={path}
               href={path}
               className={cn(
-                "text-sm font-medium transition-colors",
+                "text-sm font-medium",
                 isActive(path)
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -87,80 +89,75 @@ export default function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-4 lg:flex">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>New York</span>
-            </div>
-            <span className="text-muted-foreground">|</span>
-            <a
-              href="tel:+1234567890"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              +1 234 567 890
-            </a>
-          </div>
-          <div className="flex items-center gap-4">
-            <form className="relative hidden lg:block">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <form className="hidden lg:block">
+            <div className="flex items-center gap-2">
               <Input
                 type="search"
                 placeholder="Search products..."
-                className="w-[200px] pl-8"
+                className="w-72"
               />
-            </form>
-            <Button variant="ghost" size="icon" className="lg:hidden">
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Search</span>
-            </Button>
-            <ThemeSwitcher />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
-                  <span className="sr-only">User menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {session ? (
-                  <>
-                    <DropdownMenuItem className="text-sm">
-                      Signed in as {session.user?.email}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {session.user?.role === "admin" && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin">Dashboard</Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">Profile</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/orders">Orders</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => signOut()}>
-                      Sign Out
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <>
-                    <DropdownMenuItem onClick={() => signIn()}>
-                      Sign In
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/register">Register</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <Button variant="ghost" size="icon" onClick={() => setCartOpen(true)}>
-            <ShoppingCart className="h-5 w-5" />
-            <span className="sr-only">Open cart</span>
+              <Button type="submit" size="icon" variant="ghost">
+                <Search className="h-5 w-5" />
+                <span className="sr-only">Search</span>
+              </Button>
+            </div>
+          </form>
+          <ThemeSwitcher />
+          <Button variant="ghost" size="icon">
+            <MapPin className="h-5 w-5" />
+            <span className="sr-only">Location</span>
           </Button>
+          <div className="flex items-center gap-2">
+            {session?.user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                    <span className="sr-only">User menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem disabled>
+                    {session.user.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {session.user.role === "admin" && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">Admin Dashboard</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                  >
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={() => signIn()}>
+                <User className="h-5 w-5" />
+                <span className="sr-only">Sign in</span>
+              </Button>
+            )}
+          </div>
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCartOpen(true)}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              <span className="sr-only">Open cart</span>
+              {itemCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#96C93D] text-xs font-medium text-white">
+                  {itemCount}
+                </span>
+              )}
+            </Button>
+          </div>
           <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
         </div>
       </div>
