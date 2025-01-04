@@ -34,7 +34,7 @@ export default function RootLayout({
               <Header />
               {children}
               <Footer />
-              <Toaster />
+              <Toaster position="top-right" richColors />
             </CartProvider>
           </SessionProvider>
         </ThemeProvider>

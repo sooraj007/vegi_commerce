@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Search } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
@@ -50,19 +51,25 @@ export default function ProductsTable({
   );
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-
     try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: "DELETE",
-      });
+      toast.promise(
+        async () => {
+          const response = await fetch(`/api/products/${id}`, {
+            method: "DELETE",
+          });
 
-      if (!response.ok) throw new Error("Failed to delete product");
+          if (!response.ok) throw new Error("Failed to delete product");
 
-      setProducts(products.filter((p) => p.id !== id));
+          setProducts(products.filter((p) => p.id !== id));
+        },
+        {
+          loading: "Deleting product...",
+          success: "Product deleted successfully",
+          error: "Failed to delete product",
+        }
+      );
     } catch (error) {
       console.error("Error deleting product:", error);
-      alert("Failed to delete product");
     }
   };
 

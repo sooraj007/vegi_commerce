@@ -3,19 +3,19 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+type RouteParams = { params: Promise<{ id: string }> };
+
+export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
+    const { id } = await params;
 
     if (!session?.user || session.user.role !== "admin") {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const db = await getDb();
-    await db("products").where("id", params.id).delete();
+    await db("products").where("id", id).delete();
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
@@ -24,12 +24,10 @@ export async function DELETE(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
+    const { id } = await params;
 
     if (!session?.user || session.user.role !== "admin") {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -56,7 +54,7 @@ export async function PATCH(
     await db.transaction(async (trx) => {
       // Update product
       await trx("products")
-        .where("id", params.id)
+        .where("id", id)
         .update({
           name,
           description,
@@ -76,12 +74,12 @@ export async function PATCH(
       // Handle images
       if (images.length > 0) {
         // Delete existing images
-        await trx("product_images").where("product_id", params.id).delete();
+        await trx("product_images").where("product_id", id).delete();
 
         // Add new images
         const imageValues = images.map((_, index) => ({
-          product_id: params.id,
-          image_url: `/uploads/${params.id}-${index + 1}.jpg`, // Placeholder URL
+          product_id: id,
+          image_url: `/uploads/${id}-${index + 1}.jpg`, // Placeholder URL
           is_primary: index === 0,
         }));
 
@@ -96,12 +94,11 @@ export async function PATCH(
   }
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const db = await getDb();
+
     const product = await db
       .select(
         "p.*",
@@ -120,19 +117,16 @@ export async function GET(
       )
       .from("products as p")
       .leftJoin("categories as c", "p.category_id", "c.id")
-      .where("p.id", params.id)
+      .where("p.id", id)
       .first();
 
     if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+      return new NextResponse("Product not found", { status: 404 });
     }
 
     return NextResponse.json(product);
   } catch (error) {
     console.error("Error fetching product:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch product" },
-      { status: 500 }
-    );
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
