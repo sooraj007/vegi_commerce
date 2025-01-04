@@ -28,33 +28,55 @@ export function FlyToCart({
       background-size: cover;
       background-position: center;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      transform-origin: center;
     `;
 
     // Get source and target positions
     const sourceRect = sourceElement.getBoundingClientRect();
     const targetRect = targetElement.getBoundingClientRect();
 
+    // Calculate center positions
+    const startX = sourceRect.left + sourceRect.width / 2 - 25;
+    const startY = sourceRect.top + sourceRect.height / 2 - 25;
+    const endX = targetRect.left + targetRect.width / 2 - 25;
+    const endY = targetRect.top + targetRect.height / 2 - 25;
+
     // Set initial position
-    flyingElement.style.top = `${sourceRect.top}px`;
-    flyingElement.style.left = `${sourceRect.left}px`;
+    flyingElement.style.top = `${startY}px`;
+    flyingElement.style.left = `${startX}px`;
 
     // Add to DOM
     document.body.appendChild(flyingElement);
     flyingElementRef.current = flyingElement;
 
-    // Trigger animation
-    requestAnimationFrame(() => {
-      flyingElement.style.transition =
-        "all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-      flyingElement.style.top = `${targetRect.top}px`;
-      flyingElement.style.left = `${targetRect.left}px`;
-      flyingElement.style.transform = "scale(0.1)";
-      flyingElement.style.opacity = "0";
-    });
+    // Trigger animation with keyframes
+    flyingElement.animate(
+      [
+        {
+          top: `${startY}px`,
+          left: `${startX}px`,
+          transform: "scale(1)",
+          opacity: 1,
+        },
+        {
+          top: `${endY}px`,
+          left: `${endX}px`,
+          transform: "scale(0.1)",
+          opacity: 0,
+        },
+      ],
+      {
+        duration: 800,
+        easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        fill: "forwards",
+      }
+    );
 
     // Cleanup
     const timer = setTimeout(() => {
-      document.body.removeChild(flyingElement);
+      if (document.body.contains(flyingElement)) {
+        document.body.removeChild(flyingElement);
+      }
       onComplete?.();
     }, 1000);
 

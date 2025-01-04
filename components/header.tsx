@@ -221,11 +221,12 @@ export default function Header() {
           >
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Button
+                className="s-cart-icon"
                 variant="ghost"
                 size="icon"
                 onClick={() => setCartOpen(true)}
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="cart-icon h-5 w-5" />
                 <span className="sr-only">Open cart</span>
                 <AnimatePresence>
                   {itemCount > 0 && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +40,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState("1KG");
   const { toast } = useToast();
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -62,9 +63,54 @@ export default function ProductDetails({ productId }: { productId: string }) {
   }, [productId, toast]);
 
   const addToCart = () => {
-    toast({
-      message: `${product?.name} (${quantity}) has been added to your cart.`,
-    });
+    if (buttonRef.current) {
+      const button = buttonRef.current;
+      const buttonRect = button.getBoundingClientRect();
+      const cartIcon = document.querySelector(".cart-icon");
+
+      if (cartIcon) {
+        const cartRect = cartIcon.getBoundingClientRect();
+
+        const flyingDiv = document.createElement("div");
+        flyingDiv.style.position = "fixed";
+        flyingDiv.style.left = `${buttonRect.left}px`;
+        flyingDiv.style.top = `${buttonRect.top}px`;
+        flyingDiv.style.width = "20px";
+        flyingDiv.style.height = "20px";
+        flyingDiv.style.backgroundColor = "#96C93D";
+        flyingDiv.style.borderRadius = "50%";
+        flyingDiv.style.zIndex = "9999";
+        document.body.appendChild(flyingDiv);
+
+        const animation = flyingDiv.animate(
+          [
+            {
+              left: `${buttonRect.left}px`,
+              top: `${buttonRect.top}px`,
+              opacity: 1,
+              transform: "scale(1)",
+            },
+            {
+              left: `${cartRect.left}px`,
+              top: `${cartRect.top}px`,
+              opacity: 0,
+              transform: "scale(0.5)",
+            },
+          ],
+          {
+            duration: 800,
+            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+          }
+        );
+
+        animation.onfinish = () => {
+          document.body.removeChild(flyingDiv);
+          toast({
+            message: `${product?.name} (${quantity}) has been added to your cart.`,
+          });
+        };
+      }
+    }
   };
 
   if (loading) {
@@ -214,6 +260,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             </SelectContent>
           </Select>
           <Button
+            ref={buttonRef}
             size="lg"
             className="bg-[#DEB887] text-[#353535] hover:bg-[#DEB887]/90"
             onClick={addToCart}

@@ -43,6 +43,7 @@ export function ShopProducts() {
   const { addToCart } = useCart();
   const [flyToCartConfig, setFlyToCartConfig] = useState<{
     sourceElement: HTMLElement;
+    targetElement: HTMLElement;
     imageUrl: string;
   } | null>(null);
   const cartIconRef = useRef<HTMLButtonElement>(null);
@@ -83,8 +84,14 @@ export function ShopProducts() {
     sourceElement: HTMLElement
   ) => {
     try {
+      const cartIcon = document.querySelector(".s-cart-icon");
+      if (!cartIcon) {
+        console.error("Cart icon not found");
+        return;
+      }
       setFlyToCartConfig({
         sourceElement,
+        targetElement: cartIcon as HTMLElement,
         imageUrl: product.images?.[0]?.image_url || "/placeholder.svg",
       });
       await addToCart(product.id);
@@ -97,7 +104,9 @@ export function ShopProducts() {
         message: "Failed to add item to cart. Please try again later.",
       });
     } finally {
-      setFlyToCartConfig(null);
+      setTimeout(() => {
+        setFlyToCartConfig(null);
+      }, 1000);
     }
   };
 
@@ -258,10 +267,10 @@ export function ShopProducts() {
           </div>
         </div>
       ))}
-      {flyToCartConfig && cartIconRef.current && (
+      {flyToCartConfig && (
         <FlyToCart
           sourceElement={flyToCartConfig.sourceElement}
-          targetElement={cartIconRef.current}
+          targetElement={flyToCartConfig.targetElement}
           imageUrl={flyToCartConfig.imageUrl}
         />
       )}
