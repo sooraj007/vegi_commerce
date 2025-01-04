@@ -20,8 +20,8 @@ export default function ShopPage() {
   const [view, setView] = useState<"grid" | "list">("grid");
 
   return (
-    <main className="container py-8">
-      <h1 className="mb-8 text-3xl font-bold">Shop</h1>
+    <main className="container space-y-8 py-8">
+      <h1 className="text-3xl font-bold">Shop</h1>
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         {/* Sidebar */}
         <aside className="space-y-6">
