@@ -20,6 +20,14 @@ async function getProducts() {
           FROM product_images pi
           WHERE pi.product_id = p.id
         ) as images
+      `),
+      db.raw(`
+        (
+          SELECT pi.image_url
+          FROM product_images pi
+          WHERE pi.product_id = p.id AND pi.is_primary = true
+          LIMIT 1
+        ) as primary_image_url
       `)
     )
     .from("products as p")

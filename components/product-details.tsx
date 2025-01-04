@@ -72,6 +72,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState("1KG");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { toast } = useToast();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -197,16 +198,20 @@ export default function ProductDetails({ productId }: { productId: string }) {
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="relative isolate"
+          className="relative isolate space-y-4"
         >
           <Image
             src={
-              product.images?.[0]?.image_url &&
-              product.images[0].image_url.startsWith("/") &&
-              !product.images[0].image_url.includes("undefined") &&
-              !product.images[0].image_url.includes("null") &&
-              !product.images[0].image_url.includes("products/")
-                ? product.images[0].image_url
+              product.images?.[selectedImageIndex]?.image_url &&
+              product.images[selectedImageIndex].image_url.startsWith("/") &&
+              !product.images[selectedImageIndex].image_url.includes(
+                "undefined"
+              ) &&
+              !product.images[selectedImageIndex].image_url.includes("null") &&
+              !product.images[selectedImageIndex].image_url.includes(
+                "products/"
+              )
+                ? product.images[selectedImageIndex].image_url
                 : "/placeholder.svg"
             }
             alt={product.name}
@@ -226,6 +231,53 @@ export default function ProductDetails({ productId }: { productId: string }) {
               }
             }}
           />
+
+          {/* Image thumbnails */}
+          {product.images && product.images.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {product.images.map((image, index) => (
+                <button
+                  key={image.id}
+                  onClick={() => setSelectedImageIndex(index)}
+                  className={`relative flex-shrink-0 ${
+                    selectedImageIndex === index
+                      ? "ring-2 ring-[#96C93D]"
+                      : "ring-1 ring-gray-200"
+                  } rounded-lg overflow-hidden`}
+                >
+                  <Image
+                    src={
+                      image.image_url &&
+                      image.image_url.startsWith("/") &&
+                      !image.image_url.includes("undefined") &&
+                      !image.image_url.includes("null") &&
+                      !image.image_url.includes("products/")
+                        ? image.image_url
+                        : "/placeholder.svg"
+                    }
+                    alt={`${product.name} - Image ${index + 1}`}
+                    width={80}
+                    height={80}
+                    className="h-20 w-20 object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (
+                        target &&
+                        target.src !==
+                          `${window.location.origin}/placeholder.svg`
+                      ) {
+                        target.src = "/placeholder.svg";
+                      }
+                    }}
+                  />
+                  {image.is_primary && (
+                    <div className="absolute bottom-1 right-1 h-3 w-3 rounded-full bg-[#96C93D]" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
           <motion.div
             initial={{ rotate: -15, scale: 0.8 }}
             animate={{ rotate: [-15, -10, -15], scale: 1 }}
