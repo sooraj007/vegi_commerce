@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,7 +41,7 @@ export default function CartSidebar({ open, onClose }: CartSidebarProps) {
   const { data: session } = useSession();
   const { toast } = useToast();
 
-  const fetchCartItems = async () => {
+  const fetchCartItems = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch("/api/cart");
@@ -56,13 +56,13 @@ export default function CartSidebar({ open, onClose }: CartSidebarProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     if (session?.user && open) {
       fetchCartItems();
     }
-  }, [session?.user, open]);
+  }, [session?.user, open, fetchCartItems]);
 
   const updateQuantity = async (id: string, newQuantity: number) => {
     try {
