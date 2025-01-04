@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus, X, Search } from "lucide-react";
+import { Loader2, Plus, X, Wand2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -34,7 +34,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import IconScoutModal from "./icon-scout-modal";
+import ImageGeneratorModal from "./image-generator-modal";
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -174,17 +174,18 @@ export default function ProductForm({
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleIconSelect = async (iconUrl: string) => {
+  const handleGeneratedImage = async (imageUrl: string) => {
     try {
-      const response = await fetch(iconUrl);
+      // Convert data URL to blob
+      const response = await fetch(imageUrl);
       const blob = await response.blob();
-      const file = new File([blob], `icon-${Date.now()}.png`, {
+      const file = new File([blob], `generated-${Date.now()}.png`, {
         type: "image/png",
       });
       setImages((prev) => [...prev, file]);
     } catch (error) {
-      console.error("Error downloading icon:", error);
-      toast.error("Failed to download the selected icon");
+      console.error("Error processing generated image:", error);
+      toast.error("Failed to process the generated image");
     }
   };
 
@@ -422,9 +423,9 @@ export default function ProductForm({
                 onClick={() => setShowIconScoutModal(true)}
                 className="flex aspect-square h-full flex-col items-center justify-center gap-2 rounded-lg bg-[#2C2C2C] border-2 border-dashed border-[#3C3C3C] hover:border-[#4C4C4C] transition-colors"
               >
-                <Search className="h-8 w-8 text-muted-foreground" />
+                <Wand2 className="h-8 w-8 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  Search IconScout
+                  Generate Image
                 </span>
               </Button>
             </div>
@@ -519,10 +520,10 @@ export default function ProductForm({
             {initialData ? "Update Product" : "Create Product"}
           </Button>
         </div>
-        <IconScoutModal
+        <ImageGeneratorModal
           open={showIconScoutModal}
           onClose={() => setShowIconScoutModal(false)}
-          onSelect={handleIconSelect}
+          onSelect={handleGeneratedImage}
         />
       </form>
     </Form>
