@@ -264,15 +264,6 @@ export function ShopProducts() {
                       }}
                     />
                   </div>
-                  <Button
-                    className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30"
-                    onClick={(e) => {
-                      const button = e.currentTarget;
-                      handleAddToCart(product, button);
-                    }}
-                  >
-                    Quick View
-                  </Button>
                 </div>
                 <div className="mt-8 space-y-2">
                   {product.rating !== undefined && (

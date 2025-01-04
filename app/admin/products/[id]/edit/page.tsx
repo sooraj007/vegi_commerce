@@ -2,7 +2,14 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import ProductForm from "@/components/admin/product-form";
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 async function getProduct(id: string) {
+  if (!id) return null;
+
   const db = await getDb();
   const product = await db
     .select(
@@ -28,7 +35,7 @@ async function getProduct(id: string) {
   return product;
 }
 
-async function getCategories() {
+async function getCategories(): Promise<Category[]> {
   const db = await getDb();
   return await db
     .select("id", "name")
@@ -36,24 +43,35 @@ async function getCategories() {
     .orderBy("name", "asc");
 }
 
-export default async function EditProductPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const [product, categories] = await Promise.all([
-    getProduct(params.id),
-    getCategories(),
-  ]);
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
-  if (!product) {
+export default async function EditProductPage({ params }: PageProps) {
+  const { id } = await params;
+
+  if (!id) {
     notFound();
   }
 
-  return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Edit Product</h1>
-      <ProductForm categories={categories} initialData={product} />
-    </div>
-  );
+  let productData;
+  let categoriesData;
+
+  try {
+    [productData, categoriesData] = await Promise.all([
+      getProduct(id),
+      getCategories(),
+    ]);
+
+    if (!productData) {
+      notFound();
+    }
+
+    return (
+      <ProductForm categories={categoriesData} initialData={productData} />
+    );
+  } catch (error) {
+    console.error("Error loading product:", error);
+    notFound();
+  }
 }
