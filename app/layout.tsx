@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "@/components/session-provider";
+import { Toaster } from "sonner";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
               {children}
               <Footer />
             </div>
+            <Toaster />
           </ThemeProvider>
         </SessionProvider>
       </body>
