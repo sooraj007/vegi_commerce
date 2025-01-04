@@ -1,16 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Menu, MapPin, ShoppingCart } from "lucide-react";
+import { Search, Menu, MapPin, ShoppingCart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import CartSidebar from "@/components/cart-sidebar";
 import { useState } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Header() {
   const [cartOpen, setCartOpen] = useState(false);
+  const { data: session } = useSession();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between gap-4">
@@ -96,6 +106,48 @@ export default function Header() {
               <span className="sr-only">Search</span>
             </Button>
             <ThemeSwitcher />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">User menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {session ? (
+                  <>
+                    <DropdownMenuItem className="text-sm">
+                      Signed in as {session.user?.email}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {session.user?.role === "admin" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">Dashboard</Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/orders">Orders</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => signOut()}>
+                      Sign Out
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem onClick={() => signIn()}>
+                      Sign In
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/register">Register</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <Button variant="ghost" size="icon" onClick={() => setCartOpen(true)}>
             <ShoppingCart className="h-5 w-5" />
