@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Plus, X, Search } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -34,6 +34,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+import IconScoutModal from "./icon-scout-modal";
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -94,6 +95,7 @@ export default function ProductForm({
   const router = useRouter();
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showIconScoutModal, setShowIconScoutModal] = useState(false);
 
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
@@ -170,6 +172,20 @@ export default function ProductForm({
 
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
+  };
+
+  const handleIconSelect = async (iconUrl: string) => {
+    try {
+      const response = await fetch(iconUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `icon-${Date.now()}.png`, {
+        type: "image/png",
+      });
+      setImages((prev) => [...prev, file]);
+    } catch (error) {
+      console.error("Error downloading icon:", error);
+      toast.error("Failed to download the selected icon");
+    }
   };
 
   return (
@@ -400,6 +416,17 @@ export default function ProductForm({
                   className="hidden"
                 />
               </label>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowIconScoutModal(true)}
+                className="flex aspect-square h-full flex-col items-center justify-center gap-2 rounded-lg bg-[#2C2C2C] border-2 border-dashed border-[#3C3C3C] hover:border-[#4C4C4C] transition-colors"
+              >
+                <Search className="h-8 w-8 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Search IconScout
+                </span>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -492,6 +519,11 @@ export default function ProductForm({
             {initialData ? "Update Product" : "Create Product"}
           </Button>
         </div>
+        <IconScoutModal
+          open={showIconScoutModal}
+          onClose={() => setShowIconScoutModal(false)}
+          onSelect={handleIconSelect}
+        />
       </form>
     </Form>
   );
