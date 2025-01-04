@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Menu, MapPin, ShoppingCart, User } from "lucide-react";
+import { Search, Menu, MapPin, ShoppingCart, User, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -89,24 +89,33 @@ export default function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-4">
-          <form className="hidden lg:block">
+          <div className="hidden items-center gap-8 lg:flex">
             <div className="flex items-center gap-2">
-              <Input
-                type="search"
-                placeholder="Search products..."
-                className="w-72"
-              />
-              <Button type="submit" size="icon" variant="ghost">
-                <Search className="h-5 w-5" />
-                <span className="sr-only">Search</span>
-              </Button>
+              <MapPin className="h-5 w-5 text-[#96C93D]" />
+              <span className="text-sm">New York</span>
             </div>
-          </form>
+            <div className="flex items-center gap-2">
+              <Phone className="h-5 w-5 text-[#96C93D]" />
+              <span className="text-sm">+1 234 567 890</span>
+            </div>
+          </div>
+          <div className="relative flex items-center">
+            <Input
+              type="search"
+              placeholder="Search products..."
+              className="w-[300px] rounded-full pr-12"
+            />
+            <Button
+              type="submit"
+              size="icon"
+              variant="ghost"
+              className="absolute right-0 rounded-l-none rounded-r-full"
+            >
+              <Search className="h-5 w-5" />
+              <span className="sr-only">Search</span>
+            </Button>
+          </div>
           <ThemeSwitcher />
-          <Button variant="ghost" size="icon">
-            <MapPin className="h-5 w-5" />
-            <span className="sr-only">Location</span>
-          </Button>
           <div className="flex items-center gap-2">
             {session?.user ? (
               <DropdownMenu>
