@@ -24,7 +24,7 @@ async function getProducts() {
     )
     .from("products as p")
     .leftJoin("categories as c", "p.category_id", "c.id")
-    .orderBy("p.created_at", "desc");
+    .orderBy("p.updated_at", "desc");
 
   return products;
 }
