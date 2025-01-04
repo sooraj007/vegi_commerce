@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Star, ShoppingCart, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { motion } from "framer-motion";
 
 interface Product {
   id: number;
@@ -88,7 +89,12 @@ export default function FeaturedProducts() {
 
   return (
     <section className="container py-8">
-      <div className="mb-6 flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-6 flex items-center justify-between"
+      >
         <h2 className="text-2xl font-bold">All Products</h2>
         <Button
           variant="link"
@@ -96,32 +102,51 @@ export default function FeaturedProducts() {
         >
           See All
         </Button>
-      </div>
+      </motion.div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((product) => (
-          <div
+        {products.map((product, index) => (
+          <motion.div
             key={product.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.5,
+              delay: index * 0.1,
+              ease: "easeOut",
+            }}
+            whileHover={{
+              y: -5,
+              transition: { duration: 0.2 },
+            }}
             className="group relative overflow-hidden rounded-2xl bg-card p-4 transition-all hover:bg-muted"
           >
             <div className="absolute right-3 top-3 z-10 flex gap-2">
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-9 w-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30"
-              >
-                <Heart className="h-5 w-5 text-white" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-9 w-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30"
-                onClick={() => addToCart(product)}
-              >
-                <ShoppingCart className="h-5 w-5 text-white" />
-              </Button>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-9 w-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30"
+                >
+                  <Heart className="h-5 w-5 text-white" />
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-9 w-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30"
+                  onClick={() => addToCart(product)}
+                >
+                  <ShoppingCart className="h-5 w-5 text-white" />
+                </Button>
+              </motion.div>
             </div>
             <Link href={`/product/${product.id}`}>
-              <div className="aspect-square overflow-hidden rounded-xl bg-white dark:bg-[#454545]">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+                className="aspect-square overflow-hidden rounded-xl bg-white dark:bg-[#454545]"
+              >
                 <Image
                   src={
                     product.images?.[0]?.image_url &&
@@ -135,7 +160,7 @@ export default function FeaturedProducts() {
                   alt={product.name}
                   width={200}
                   height={200}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  className="h-full w-full object-cover"
                   placeholder="blur"
                   blurDataURL="/placeholder.svg"
                   priority={false}
@@ -149,18 +174,45 @@ export default function FeaturedProducts() {
                     }
                   }}
                 />
-              </div>
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2">
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.1 + 0.2 }}
+                className="mt-3 space-y-2"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: index * 0.1 + 0.3 }}
+                  className="flex items-center gap-2"
+                >
                   <div className="rounded-full bg-[#96C93D] p-1.5">
                     <Star className="h-3 w-3 fill-white text-white" />
                   </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
+                </motion.div>
+                <motion.p
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 + 0.4 }}
+                  className="text-sm text-muted-foreground"
+                >
                   {product.category_name}
-                </p>
-                <h3 className="font-semibold">{product.name}</h3>
-                <div className="flex items-center gap-2">
+                </motion.p>
+                <motion.h3
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 + 0.5 }}
+                  className="font-semibold"
+                >
+                  {product.name}
+                </motion.h3>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 + 0.6 }}
+                  className="flex items-center gap-2"
+                >
                   <span className="text-lg font-bold text-[#DEB887]">
                     ${product.price}
                   </span>
@@ -169,10 +221,10 @@ export default function FeaturedProducts() {
                       ${product.old_price}
                     </span>
                   )}
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             </Link>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>

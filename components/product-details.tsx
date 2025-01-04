@@ -13,6 +13,7 @@ import {
 import { Star, Leaf, Facebook, Twitter, Instagram } from "lucide-react";
 import NutritionalValues from "@/components/nutritional-values";
 import { useToast } from "@/components/ui/use-toast";
+import { motion } from "framer-motion";
 
 interface Product {
   id: string;
@@ -90,7 +91,12 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
   return (
     <section className="mb-16 grid gap-8 lg:grid-cols-2">
-      <div className="relative isolate">
+      <motion.div
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative isolate"
+      >
         <Image
           src={
             product.images?.[0]?.image_url &&
@@ -118,26 +124,85 @@ export default function ProductDetails({ productId }: { productId: string }) {
             }
           }}
         />
-        <Leaf className="absolute -left-2 top-0 h-16 w-16 rotate-[-15deg] text-[#96C93D]/20" />
-        <Leaf className="absolute -bottom-2 -right-2 h-16 w-16 rotate-[165deg] text-[#96C93D]/20" />
-      </div>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold lg:text-4xl">{product.name}</h1>
-        <div className="flex items-center gap-4">
+        <motion.div
+          initial={{ rotate: -15, scale: 0.8 }}
+          animate={{ rotate: [-15, -10, -15], scale: 1 }}
+          transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+        >
+          <Leaf className="absolute -left-2 top-0 h-16 w-16 text-[#96C93D]/20" />
+        </motion.div>
+        <motion.div
+          initial={{ rotate: 165, scale: 0.8 }}
+          animate={{ rotate: [165, 170, 165], scale: 1 }}
+          transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+        >
+          <Leaf className="absolute -bottom-2 -right-2 h-16 w-16 text-[#96C93D]/20" />
+        </motion.div>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="space-y-6"
+      >
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="text-3xl font-bold lg:text-4xl"
+        >
+          {product.name}
+        </motion.h1>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+          className="flex items-center gap-4"
+        >
           <div className="flex text-[#DEB887]">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="h-5 w-5 fill-current" />
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2, delay: 0.5 + i * 0.1 }}
+              >
+                <Star className="h-5 w-5 fill-current" />
+              </motion.div>
             ))}
           </div>
-        </div>
-        <div className="inline-block rounded-full bg-[#96C93D]/10 px-3 py-1 text-sm font-medium text-[#96C93D]">
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.6 }}
+          className="inline-block rounded-full bg-[#96C93D]/10 px-3 py-1 text-sm font-medium text-[#96C93D]"
+        >
           {product.category_name}
-        </div>
-        <p className="text-muted-foreground">{product.description}</p>
+        </motion.div>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.7 }}
+          className="text-muted-foreground"
+        >
+          {product.description}
+        </motion.p>
         {product.nutritional_info && (
-          <NutritionalValues values={product.nutritional_info} />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.8 }}
+          >
+            <NutritionalValues values={product.nutritional_info} />
+          </motion.div>
         )}
-        <div className="flex items-center gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.9 }}
+          className="flex items-center gap-4"
+        >
           <Select value={quantity} onValueChange={setQuantity}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select quantity" />
@@ -155,8 +220,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
           >
             Add to Cart - ${product.price}
           </Button>
-        </div>
-        <div className="space-y-2">
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 1 }}
+          className="space-y-2"
+        >
           <p className="text-sm text-muted-foreground">
             Tags:{" "}
             <span className="text-foreground">Organic, Healthy, Natural</span>
@@ -173,8 +243,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
               <Instagram className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
